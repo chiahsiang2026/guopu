@@ -465,10 +465,11 @@ function begin(){
 const isUp = () => S.mode === "motion" ? S.elev > ELEV_UP : S.fbUp;
 async function finish(){
   run.state = "place"; setHint("");
-  const hold = Math.min(run.t, T_WHITE), cell = dir2cell(S.elev, S.az);
+  const E = run.upElev ?? S.elev, A = run.upAz ?? S.az, ST = run.stabT ? run.stabSum / run.stabT : stability();
+  const hold = Math.min(run.t, T_WHITE), cell = dir2cell(E, A);
   view.on = false;
-  const rec = { created_at: new Date().toISOString(), elev: +S.elev.toFixed(2), az: +S.az.toFixed(2), hold: +hold.toFixed(2),
-    stab: +stability().toFixed(3), pal: run.arch.pal, cld: run.arch.cld, lit: run.arch.lit, arch: run.arch.arch, seed: +run.arch.seed.toFixed(3), cell };
+  const rec = { created_at: new Date().toISOString(), elev: +E.toFixed(2), az: +A.toFixed(2), hold: +hold.toFixed(2),
+    stab: +Math.max(0, Math.min(1, ST)).toFixed(3), pal: run.arch.pal, cld: run.arch.cld, lit: run.arch.lit, arch: run.arch.arch, seed: +run.arch.seed.toFixed(3), cell };
   const snap = snapshotSky();
   const recs = await store.recent(); store.add(rec);
   const roots = buildTree(recs.concat([rec]));
@@ -512,9 +513,10 @@ function snapshotSky(){
 }
 function frame(now){
   const dt = Math.min(.5, (now - (run.last || now)) / 1000); run.last = now;   // 用真實經過的時間；慢手機掉格也不會變慢
-  if (run.state === "wait") { if (isUp()) { run.state = "hold"; run.t = 0; } }
+  if (run.state === "wait") { if (isUp()) { run.state = "hold"; run.t = 0; run.stabSum = 0; run.stabT = 0; run.upElev = S.elev; run.upAz = S.az; } }
   else if (run.state === "hold") {
-    if (isUp()) { run.t += dt; run.dropped = 0; }
+    if (isUp()) { run.t += dt; run.dropped = 0;
+      run.upElev = S.elev; run.upAz = S.az; run.stabSum += stability() * dt; run.stabT += dt; }   // 記下「舉著時」的方向與穩定度
     else { run.dropped += dt;
       if (run.dropped > .35) { if (run.t < T_MIN) { run.state = "wait"; run.t = 0; S.feat = []; setHint(S.mode === "motion" ? "把手機舉過頭，看向天空" : "按住畫面＝舉起手機；上下拖曳改變仰角"); } else { finish(); } } }
     if (run.t >= T_MIN && !run.arch) run.arch = chooseArchetype();
