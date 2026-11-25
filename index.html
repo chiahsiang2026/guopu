@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a12">
+</head>
+<body>
 <title>抬頭的那一格</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,23 +30,23 @@ canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block;
 #sphere { pointer-events: none; }
 .layer { position: fixed; inset: 0; display: grid; place-items: center; text-align: center;
   padding: calc(env(safe-area-inset-top, 0px) + 24px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-left, 0px)); }
-.card { display: grid; gap: 18px; max-width: 30ch; justify-items: center; }
-h1 { font-weight: 500; font-size: 1.6rem; letter-spacing: .12em; margin: 0; text-wrap: balance; }
-p { margin: 0; line-height: 1.8; color: var(--dim); font-size: .95rem; }
-button { font: inherit; font-weight: 500; letter-spacing: .1em; color: var(--ink); background: var(--lav); border: 0; border-radius: 999px; padding: 14px 34px; cursor: pointer; }
+.card { display: grid; gap: 22px; max-width: 22em; justify-items: center; }
+h1 { font-weight: 500; font-size: 2.3rem; letter-spacing: .12em; margin: 0; text-wrap: balance; }
+p { margin: 0; line-height: 1.7; color: #d2cfe4; font-size: 1.3rem; }
+button { font: inherit; font-size: 1.25rem; font-weight: 500; letter-spacing: .1em; color: var(--ink); background: var(--lav); border: 0; border-radius: 999px; padding: 16px 40px; min-height: 52px; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 .hud { position: fixed; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; gap: 12px;
   padding: calc(env(safe-area-inset-top, 0px) + 14px) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
-  font-family: var(--font-data); font-size: .72rem; color: var(--dim); letter-spacing: .06em; font-variant-numeric: tabular-nums; pointer-events: none; }
+  font-family: var(--font-data); font-size: 1.12rem; color: #e0ddf0; letter-spacing: .06em; font-variant-numeric: tabular-nums; pointer-events: none; }
 button.ghost { background: transparent; color: var(--lav); border: 1px solid rgba(201,195,242,.45); }
 .viewbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; gap: 12px; justify-items: center; text-align: center;
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 22px); }
-.viewbar p { font-size: .85rem; color: var(--dim); letter-spacing: .06em; }
+.viewbar p { font-size: 1.15rem; color: #d6d3e8; letter-spacing: .04em; line-height: 1.6; }
 .viewbar .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 #sphere.interactive { pointer-events: auto; touch-action: none; cursor: grab; }
 .hint { position: fixed; left: 0; right: 0; bottom: 0; text-align: center; pointer-events: none;
-  padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 22px); color: var(--dim); font-size: .85rem; letter-spacing: .08em; }
-.note { font-size: .75rem; color: var(--dim); opacity: .8; }
+  padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 22px); color: #eeebfa; font-size: 1.3rem; letter-spacing: .06em; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.note { font-size: 1.05rem; color: #b9b5cf; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -410,7 +418,7 @@ function rotTo(c){ // 把方向 c 轉到正對觀者 (0,0,1)
 function spinY(a){ const c = Math.cos(a), s = Math.sin(a); return p => [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c]; }
 function cellColor(rec){
   const P = PALETTES[rec.pal], k = Math.max(.1, Math.min(1, rec.hold / T_CLEAR)), w = Math.max(0, Math.min(1, (rec.hold - T_PEAK)/(T_WHITE - T_PEAK)));
-  const m = (i) => { const v = (P[0][i]*.45 + P[1][i]*.55) * (.25 + .75*k) * (1 + CLOUDS[rec.cld][0]*.4); return Math.round(255*Math.min(1, v + (1-v)*w*w)); };
+  const m = (i) => { const v = (P[0][i]*.45 + P[1][i]*.55) * (.6 + .4*k) * (1 + CLOUDS[rec.cld][0]*.4) * 1.15; return Math.round(255*Math.min(1, v + (1-v)*w*w)); };
   return `rgb(${m(0)},${m(1)},${m(2)})`;
 }
 function drawSphere(roots, mine, rot, img, alpha, zoom = 1){
@@ -439,7 +447,7 @@ function drawSphere(roots, mine, rot, img, alpha, zoom = 1){
     }
     const w = whiteOf(n); if (w > 0) { path(pts); sx.fillStyle = `rgba(255,255,255,${w})`; sx.globalAlpha = alpha; sx.fill(); }
     sx.globalAlpha = alpha;
-    if (n.sz < MAXSIZE) { path(pts); sx.strokeStyle = `rgba(201,195,242,${.10 + .2*c[2]})`; sx.lineWidth = Math.max(.6, R0/700); sx.stroke(); }
+    path(pts); sx.strokeStyle = `rgba(235,232,255,${.25 + .35*c[2]})`; sx.lineWidth = Math.max(.8, R0/500); sx.stroke();
     if (isMine) { path(pts); sx.strokeStyle = "rgba(255,255,255,.95)"; sx.lineWidth = Math.max(2, R0/160); sx.stroke(); }
   }
   const rim = sx.createRadialGradient(cx, cy, R*.92, cx, cy, R*1.04);
@@ -490,7 +498,8 @@ async function finish(){
     if (s < 12) requestAnimationFrame(anim);
     else { run.state = "done"; $("hud").hidden = true; $("again").hidden = false;
       const P = PALETTES[rec.pal][3], C = CLOUDS[rec.cld][6], Li = LIGHTS[rec.lit];
-      $("placedText").textContent = `${P}・${C}・${Li}　第 ${rec.arch + 1} 種天空，停留 ${rec.hold.toFixed(1)} 秒。它已經混進其他人的天空裡。`;
+      const tot = recs.length + 1;
+      $("placedText").textContent = `${P}・${C}・${Li}　第 ${rec.arch + 1} 種天空，停留 ${rec.hold.toFixed(1)} 秒。` + (tot > 1 ? `它已經混進其他 ${tot - 1} 片天空裡。` : `你是第一個留下天空的人。`);
       $("storeNote").textContent = store.remote ? "" : store.offline ? "目前連不上共同的天空，這片天空先留在這支手機裡。" : "本機示範：球上只有這支手機留下的天空。正式版會顯示所有觀眾留下的天空。"; }
   })();
 }
@@ -535,25 +544,33 @@ function frame(now){
 }
 
 /* ---------------- 觀看共同的球（任何時候都能回來看） ---------------- */
-const view = { on: false, roots: new Map(), yaw: 0, pitch: -0.5, drag: null, auto: true, last: 0, demo: false, timer: 0 };
+const view = { on: false, roots: new Map(), yaw: 0, pitch: -0.5, drag: null, auto: true, last: 0, demo: false, timer: 0, newest: null, hold: 0 };
 function viewRot(){ const y = spinY(view.yaw), cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
   return p => { const q = y(p); return [q[0], q[1]*cp - q[2]*sp, q[1]*sp + q[2]*cp]; }; }
 async function viewLoad(){
   if (view.demo) return;
-  view.roots = buildTree(await store.recent()); viewText();
+  const recs = await store.recent(); view.roots = buildTree(recs);
+  const newest = recs.reduce((a, r) => (!a || r.created_at > a.created_at ? r : a), null);
+  if (newest && (!view.newest || newest.created_at !== view.newest.created_at)) {   // 轉到最新的一片天空
+    view.newest = newest; const L = newest._leaf; if (!L._poly) L._poly = polyOf(L.f, L.u0, L.v0, L.sz);
+    const [x, y, z] = L._poly.c, r = Math.hypot(x, z); view.yaw = Math.atan2(-x, z); view.pitch = Math.atan2(y, r) ; view.hold = 6;
+  }
+  view.newest = newest; viewText();
 }
 function viewText(){
   const st = stats(view.roots);
-  $("viewText").textContent = st.n ? `目前 ${st.n} 片天空，分在 ${st.cells} 格裡${st.white ? `；${st.white} 格已經被看到過曝` : ""}。拖曳可以轉動。` : "還沒有人留下天空。";
+  let ago = "";
+  if (view.newest) { const m = Math.round((Date.now() - Date.parse(view.newest.created_at)) / 60000); ago = m < 1 ? "最新一片（白框）剛剛才放上去。" : m < 60 ? `最新一片（白框）是 ${m} 分鐘前。` : m < 1440 ? `最新一片（白框）是 ${Math.round(m / 60)} 小時前。` : ""; }
+  $("viewText").textContent = st.n ? `目前 ${st.n} 片天空，分在 ${st.cells} 格裡${st.white ? `；${st.white} 格已經被看到過曝` : ""}。${ago}拖曳可以轉動。` : "還沒有人留下天空。";
 }
 function viewOpen(){
-  view.on = true; view.demo = false; $("intro").hidden = true; $("again").hidden = true; $("hud").hidden = true; setHint("");
+  view.on = true; view.demo = false; view.newest = null; $("intro").hidden = true; $("again").hidden = true; $("hud").hidden = true; setHint("");
   $("viewbar").hidden = false; $("demo").hidden = store.remote; skyC.style.opacity = "0"; sphC.classList.add("interactive");
   viewLoad(); clearInterval(view.timer); view.timer = setInterval(viewLoad, 30000);
   (function loop(now){ if (!view.on) return;
     const dt = Math.min(.1, (now - (view.last || now)) / 1000); view.last = now;
-    if (!view.drag) view.yaw += dt * .12;
-    drawSphere(view.roots, null, viewRot(), null, 1); requestAnimationFrame(loop); })(performance.now());
+    if (view.hold > 0) view.hold -= dt; else if (!view.drag) view.yaw += dt * .10;
+    drawSphere(view.roots, view.newest, viewRot(), null, 1); requestAnimationFrame(loop); })(performance.now());
 }
 function viewClose(){ view.on = false; clearInterval(view.timer); sphC.classList.remove("interactive"); $("viewbar").hidden = true;
   sx.clearRect(0, 0, sphC.width, sphC.height); skyC.style.opacity = "1"; $("intro").hidden = false; }
@@ -569,7 +586,7 @@ $("demo").addEventListener("click", () => {
     const pal = Math.floor(Math.random()*20), cld = Math.floor(Math.random()*10);
     fake.push({ created_at: new Date(t += 6e5).toISOString(), elev, az, hold: 4 + Math.random()*24, pal, cld, lit: 0, arch: 0 });
   }
-  view.demo = true; view.roots = buildTree(fake); viewText(); $("viewText").textContent += "（示範資料，未儲存）";
+  view.demo = true; view.roots = buildTree(fake); view.newest = null; viewText(); $("viewText").textContent += "（示範資料，未儲存）";
 });
 $("view").addEventListener("click", viewOpen);
 $("view2").addEventListener("click", viewOpen);
@@ -588,3 +605,6 @@ $("restart").addEventListener("click", () => { view.on = false; begin(); });
 addEventListener("resize", resize); resize();
 requestAnimationFrame(frame);
 </script>
+
+</body>
+</html>
