@@ -4,19 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0a12">
-</head>
-<body>
-<title>抬頭的那一格</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>過曝計劃</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&family=IBM+Plex+Mono:wght@400&display=swap">
 <style>
 /* 一個全螢幕的觀看裝置：天空畫布在底，極少的文字浮在上面 */
 :root {
-  --ink: #0b0a12;          /* 未被看見的天空 */
-  --veil: rgba(11,10,18,.62);
+  --ink: #0b0a12;
   --text: #ecebf5;
-  --dim: #a6a3bd;
   --lav: #c9c3f2;           /* 過曝的淡紫 */
   --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -24,31 +19,37 @@
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body { background: var(--ink); color: var(--text); font-family: var(--font-body); font-weight: 300; overflow: hidden;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+/* 長按不選取文字、不跳出選單（「按住畫面」的備用操作才不會被打斷） */
+body { background: var(--ink); color: var(--text); font-family: var(--font-body); font-weight: 300; overflow: hidden; margin: 0;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; touch-action: none; }
 #sphere { pointer-events: none; }
 .layer { position: fixed; inset: 0; display: grid; place-items: center; text-align: center;
   padding: calc(env(safe-area-inset-top, 0px) + 24px) max(20px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-left, 0px)); }
 .card { display: grid; gap: 22px; max-width: 22em; justify-items: center; }
-h1 { font-weight: 500; font-size: 2.3rem; letter-spacing: .12em; margin: 0; text-wrap: balance; }
+h1 { font-weight: 500; font-size: 2.3rem; letter-spacing: .16em; margin: 0; text-wrap: balance; }
 p { margin: 0; line-height: 1.7; color: #d2cfe4; font-size: 1.3rem; }
 button { font: inherit; font-size: 1.25rem; font-weight: 500; letter-spacing: .1em; color: var(--ink); background: var(--lav); border: 0; border-radius: 999px; padding: 16px 40px; min-height: 52px; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+button.ghost { background: transparent; color: var(--lav); border: 1px solid rgba(201,195,242,.45); }
 .hud { position: fixed; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; gap: 12px;
   padding: calc(env(safe-area-inset-top, 0px) + 14px) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
   font-family: var(--font-data); font-size: 1.12rem; color: #e0ddf0; letter-spacing: .06em; font-variant-numeric: tabular-nums; pointer-events: none; }
-button.ghost { background: transparent; color: var(--lav); border: 1px solid rgba(201,195,242,.45); }
 .viewbar { position: fixed; left: 0; right: 0; bottom: 0; display: grid; gap: 12px; justify-items: center; text-align: center;
   padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 22px); }
 .viewbar p { font-size: 1.15rem; color: #d6d3e8; letter-spacing: .04em; line-height: 1.6; }
 .viewbar .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-#sphere.interactive { pointer-events: auto; touch-action: none; cursor: grab; }
+#sphere.interactive { pointer-events: auto; cursor: grab; }
 .hint { position: fixed; left: 0; right: 0; bottom: 0; text-align: center; pointer-events: none;
   padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 22px); color: #eeebfa; font-size: 1.3rem; letter-spacing: .06em; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 .note { font-size: 1.05rem; color: #b9b5cf; line-height: 1.6; }
+#overview { position: absolute; left: 0; top: 0; right: 0; min-height: 100%; overflow: visible; background: var(--ink); padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; -webkit-user-select: text; user-select: text; }
+#overview figure { margin: 0; font-size: .8rem; color: #cfcbe4; text-align: center; }
+#overview canvas { position: static; width: 80px; height: 80px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+</head>
+<body>
 
 <canvas id="sky"></canvas>
 <canvas id="sphere"></canvas>
@@ -58,17 +59,16 @@ button.ghost { background: transparent; color: var(--lav); border: 1px solid rgb
 
 <div class="layer" id="intro">
   <div class="card">
-    <h1>抬頭的那一格</h1>
+    <h1>過曝計劃</h1>
     <p>把手機舉過頭，像抬頭看天空一樣。<br>看得越久，天空越亮、越清楚。<br>看太久，它會變成一片白。</p>
     <button id="start" type="button">開始</button>
     <button id="view" type="button" class="ghost">看看大家的天空</button>
-    <p class="note" id="modeNote"></p>
   </div>
 </div>
 
 <div class="viewbar" id="viewbar" hidden>
   <p id="viewText"></p>
-  <div class="row"><button id="demo" type="button" class="ghost" hidden>示範：模擬 300 位觀眾</button><button id="back" type="button">返回</button></div>
+  <div class="row"><button id="demo" type="button" class="ghost" hidden>示範：模擬 1500 位觀眾</button><button id="back" type="button">返回</button></div>
 </div>
 
 <div class="layer" id="again" hidden>
@@ -80,61 +80,41 @@ button.ghost { background: transparent; color: var(--lav); border: 1px solid rgb
   </div>
 </div>
 
+<div id="overview" hidden></div>
+
 <script>
 "use strict";
 /* ---------------- 設定：正式上線時填入 Supabase（留空＝本機示範） ---------------- */
 const CONFIG = { supabaseUrl: "https://acbhsbdtzazqileukrxl.supabase.co", supabaseKey: "sb_publishable_sshm83ghvmIgqGSmjDHuNg_rAK6nbFH", table: "skies", keep: 50000 };
 
 /* ---------------- 1000 種天空原型：20 種天色 × 10 種雲型 × 5 種光線 ---------------- */
-// 天色依仰角排列：越接近天頂越深、越冷；越靠近地平越亮、越暖
-const PALETTES = [ // [天頂, 地平, 光]；每 4 種一組，依仰角分 5 組；每組都有藍、紫與暖色，避免某個角度只出現一種色調
-  // 幾乎正上方（80–90°）
-  [[0.05,0.06,0.20],[0.20,0.22,0.45],[0.80,0.82,1.00], "深夜藍"],
-  [[0.04,0.16,0.52],[0.30,0.52,0.90],[0.95,0.97,1.00], "高空鈷藍"],
-  [[0.13,0.08,0.30],[0.52,0.38,0.70],[0.95,0.80,1.00], "藍調紫"],
-  [[0.22,0.14,0.40],[0.86,0.42,0.56],[1.00,0.62,0.62], "晚霞紫紅"],
-  // 70–80°
-  [[0.07,0.20,0.48],[0.42,0.60,0.86],[1.00,0.98,0.92], "天頂深藍"],
-  [[0.08,0.07,0.28],[0.30,0.30,0.62],[0.85,0.85,1.00], "靛青"],
-  [[0.20,0.18,0.42],[0.66,0.58,0.82],[1.00,0.90,0.95], "薰衣草"],
-  [[0.20,0.18,0.36],[0.84,0.56,0.62],[0.98,0.74,0.72], "暮色玫瑰"],
-  // 60–70°
-  [[0.16,0.38,0.72],[0.70,0.84,0.97],[1.00,1.00,0.96], "正午白藍"],
-  [[0.16,0.18,0.30],[0.48,0.50,0.62],[0.90,0.88,0.95], "晨前灰藍"],
-  [[0.38,0.42,0.48],[0.72,0.74,0.76],[0.95,0.95,0.95], "陰天灰"],
-  [[0.24,0.22,0.48],[1.00,0.58,0.38],[1.00,0.70,0.40], "黃昏橙紅"],
-  // 50–60°
-  [[0.18,0.26,0.42],[0.58,0.66,0.78],[0.92,0.95,1.00], "冷霧藍"],
-  [[0.26,0.30,0.36],[0.55,0.58,0.62],[0.85,0.87,0.90], "雨前鉛灰"],
-  [[0.30,0.36,0.62],[1.00,0.74,0.78],[1.00,0.86,0.80], "清晨淡粉"],
-  [[0.28,0.34,0.60],[1.00,0.70,0.52],[1.00,0.80,0.60], "粉橘"],
-  // 接近地平（40–50°）
-  [[0.36,0.48,0.62],[0.80,0.85,0.90],[1.00,1.00,1.00], "霧白"],
-  [[0.22,0.40,0.66],[0.98,0.84,0.60],[1.00,0.88,0.62], "午後金"],
-  [[0.40,0.46,0.58],[0.94,0.88,0.78],[1.00,0.95,0.85], "暖霧米白"],
-  [[0.30,0.26,0.44],[1.00,0.50,0.22],[1.00,0.62,0.28], "夕照金紅"],
+// 天色依仰角排列：越接近天頂越深、越冷；越靠近地平越亮、越暖（名稱只是內部參考，畫面上顯示的名稱依實際畫面判斷）
+const PALETTES = [ // [天頂, 地平, 光]
+  [[0.05,0.06,0.20],[0.20,0.22,0.45],[0.80,0.82,1.00]], [[0.04,0.16,0.52],[0.30,0.52,0.90],[0.95,0.97,1.00]],
+  [[0.13,0.08,0.30],[0.52,0.38,0.70],[0.95,0.80,1.00]], [[0.22,0.14,0.40],[0.86,0.42,0.56],[1.00,0.62,0.62]],
+  [[0.07,0.20,0.48],[0.42,0.60,0.86],[1.00,0.98,0.92]], [[0.08,0.07,0.28],[0.30,0.30,0.62],[0.85,0.85,1.00]],
+  [[0.20,0.18,0.42],[0.66,0.58,0.82],[1.00,0.90,0.95]], [[0.20,0.18,0.36],[0.84,0.56,0.62],[0.98,0.74,0.72]],
+  [[0.16,0.38,0.72],[0.70,0.84,0.97],[1.00,1.00,0.96]], [[0.16,0.18,0.30],[0.48,0.50,0.62],[0.90,0.88,0.95]],
+  [[0.38,0.42,0.48],[0.72,0.74,0.76],[0.95,0.95,0.95]], [[0.24,0.22,0.48],[1.00,0.58,0.38],[1.00,0.70,0.40]],
+  [[0.18,0.26,0.42],[0.58,0.66,0.78],[0.92,0.95,1.00]], [[0.26,0.30,0.36],[0.55,0.58,0.62],[0.85,0.87,0.90]],
+  [[0.30,0.36,0.62],[1.00,0.74,0.78],[1.00,0.86,0.80]], [[0.28,0.34,0.60],[1.00,0.70,0.52],[1.00,0.80,0.60]],
+  [[0.36,0.48,0.62],[0.80,0.85,0.90],[1.00,1.00,1.00]], [[0.22,0.40,0.66],[0.98,0.84,0.60],[1.00,0.88,0.62]],
+  [[0.40,0.46,0.58],[0.94,0.88,0.78],[1.00,0.95,0.85]], [[0.30,0.26,0.44],[1.00,0.50,0.22],[1.00,0.62,0.28]],
 ];
+const FOGGY = new Set([16, 18]);        // 霧感的天色（霧白、暖霧米白）
+const SUNRISE = new Set([14, 15, 17]);  // 偏晨光的暖色（清晨淡粉、粉橘、金）；其餘暖色歸日落
 const CLOUDS = [ // 覆蓋, 尺度, 拉伸, 銳利, 層次, 光隙
-  [0.02, 1.0, 1.0, 0.30, 0.0, 0.0, "晴空"],
-  [0.38, 1.4, 6.0, 0.25, 0.2, 0.0, "卷雲"],
-  [0.46, 5.5, 1.3, 0.55, 0.3, 0.0, "卷積雲"],
-  [0.30, 2.0, 1.2, 0.70, 0.5, 0.0, "淡積雲"],
-  [0.50, 1.2, 1.1, 0.80, 0.8, 0.0, "積雲"],
-  [0.92, 0.8, 2.5, 0.10, 0.2, 0.0, "層雲"],
-  [0.62, 2.4, 1.6, 0.65, 0.5, 0.0, "碎雲"],
-  [0.82, 1.6, 1.4, 0.60, 0.6, 1.0, "雲隙光"],
-  [0.58, 0.9, 1.0, 0.90, 1.0, 0.0, "濃積雲"],
-  [0.95, 1.9, 1.8, 0.50, 0.7, 0.0, "層積雲"],
+  [0.02, 1.0, 1.0, 0.30, 0.0, 0.0], [0.38, 1.4, 6.0, 0.25, 0.2, 0.0], [0.46, 2.4, 1.3, 0.45, 0.3, 0.0],
+  [0.30, 1.5, 1.2, 0.60, 0.5, 0.0], [0.50, 1.2, 1.1, 0.80, 0.8, 0.0], [0.92, 0.8, 2.5, 0.10, 0.2, 0.0],
+  [0.62, 1.5, 1.6, 0.55, 0.5, 0.0], [0.82, 1.3, 1.4, 0.55, 0.6, 1.0], [0.58, 0.9, 1.0, 0.90, 1.0, 0.0],
+  [0.95, 1.4, 1.8, 0.45, 0.7, 0.0],
 ];
-const LIGHTS = ["順光", "逆光", "側光", "穿雲", "散射"];
-// 1000 種 = 20 天色 × 10 雲型 × 5 光線；編號 = 天色×50 + 雲型×5 + 光線
 
 /* ---------------- 時間規則 ---------------- */
-const T_MIN = 3, T_CLEAR = 15, T_PEAK = 20, T_WHITE = 30, LMAX = 7, ELEV_UP = 40;
+// 一舉起就開始；時間越短越暗、越深藍；15 秒最清楚；20 秒以後過曝；30 秒全白
+const T_CLEAR = 15, T_PEAK = 20, T_WHITE = 30, LMAX = 7, ELEV_UP = 30, T_ACCIDENT = 0.3;
 
-/* ---------------- WebGL 天空 ---------------- */
-const skyC = document.getElementById("sky");
-const gl = skyC.getContext("webgl", { preserveDrawingBuffer: true, antialias: false });
+/* ---------------- WebGL 天空（畫面上看到的、放進球裡的，都是同一個畫法） ---------------- */
 const VS = `attribute vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
 const FS = `precision highp float;
 uniform vec2 uRes; uniform float uTime, uT, uLevel, uSeed, uStab, uAz, uLit;
@@ -146,44 +126,40 @@ float fbm(vec2 p, float oct){ float a=.5, s=0.; mat2 m=mat2(1.6,1.2,-1.2,1.6); f
 vec3 sky(vec2 uv){
   float y = clamp(uv.y*0.5+0.5, 0., 1.);
   vec3 c = mix(uHor, uZen, pow(y, .8));
-  // 五種光線：太陽在哪裡、多強
   vec2 sp; float sunA;
-  if (uLit < .5)      { sp = vec2(.35*sin(uAz), -1.6); sunA = .15; }       // 順光：太陽在背後
-  else if (uLit < 1.5){ sp = vec2(.25*sin(uAz), .30);  sunA = 1.2; }       // 逆光：太陽在畫面裡
-  else if (uLit < 2.5){ sp = vec2(sin(uAz) < 0. ? -1.5 : 1.5, .15); sunA = .7; } // 側光
-  else if (uLit < 3.5){ sp = vec2(.2*sin(uAz), .45);   sunA = .8; }        // 穿雲
-  else                { sp = vec2(0., 3.);             sunA = 0.; }        // 散射：看不到太陽
+  if (uLit < .5)      { sp = vec2(.35*sin(uAz), -1.6); sunA = .15; }
+  else if (uLit < 1.5){ sp = vec2(.25*sin(uAz), .30);  sunA = 1.2; }
+  else if (uLit < 2.5){ sp = vec2(sin(uAz) < 0. ? -1.5 : 1.5, .15); sunA = .7; }
+  else if (uLit < 3.5){ sp = vec2(.2*sin(uAz), .45);   sunA = .8; }
+  else                { sp = vec2(0., 3.);             sunA = 0.; }
   float sd = length(uv - sp);
-  c += uSun * sunA * (.18*exp(-sd*3.) + .5*exp(-sd*14.));
   if (uLit > 3.5) c = mix(c, vec3(dot(c, vec3(.3,.4,.3)))*1.08, .3);
   float cov = uCl.x, sc = uCl.y, st = uCl.z, sh = uCl.w;
   vec2 q = uv*vec2(1./st, 1.)*sc*2.2 + vec2(uTime*.012, uTime*.004);
   vec2 w = vec2(fbm(q*.7+3.1, 4.), fbm(q*.7-5.7, 4.));
-  float oct = 3. + 4.*uStab;                    // 手越穩，雲越細緻
+  float oct = 3. + 2.*uStab;              // 細節最多 5 層，雲的邊緣不會碎成小點
   float d = fbm(q + (w-.5)*.55, oct)*.92;
   float edge = mix(.22, .03, sh);
   float cl = smoothstep(1.-cov-edge, 1.-cov+edge, d);
   float body = smoothstep(1.-cov, 1.-cov+.35, d);
   vec2 ld = normalize(sp - uv);
   float d2 = fbm(q + (w-.5)*.55 + ld*.18, 4.)*.92, d1 = fbm(q + (w-.5)*.55, 4.)*.92;
-  float shade = clamp(.55 + (d1 - d2)*2.2, 0., 1.);   // 朝太陽那側較亮
+  float shade = clamp(.55 + (d1 - d2)*2.2, 0., 1.);
   float k;
   if (uLit < .5)       k = .85 + .20*shade;
-  else if (uLit < 1.5) k = mix(.30, 1.35, (1.-body)*.75 + shade*.25);   // 逆光：雲身暗、雲邊銀亮
+  else if (uLit < 1.5) k = mix(.30, 1.35, (1.-body)*.75 + shade*.25);
   else if (uLit < 2.5) k = .30 + .85*shade;
   else if (uLit < 3.5) k = .40 + .45*shade + .55*(1.-body);
   else                 k = .72 + .06*shade;
   vec3 lit = mix(vec3(1.), uSun, .35);
   vec3 dark = mix(mix(uHor,uZen,.4), vec3(dot(uHor,vec3(.33))), .3)*.8;
   vec3 base = mix(lit*k, dark*(.75+.4*k), uCl2.x*body*.45);
-  base = mix(base, mix(uHor, uZen, y)*1.1, .18);   // 雲帶一點天色
+  base = mix(base, mix(uHor, uZen, y)*1.1, .18);
   c = mix(c, base, cl);
-  if (uCl2.y > .5 || (uLit > 2.5 && uLit < 3.5)) { float r = smoothstep(.0,1.,1.-cl) * (.6+.4*sin(atan(uv.x-sp.x, uv.y-sp.y)*7.+fbm(uv*3.,2.)*4.)); c += uSun*.07*r*smoothstep(1.3,.0,sd); }
   return c;
 }
 void main(){
   vec2 uv = (gl_FragCoord.xy*2. - uRes) / uRes.y;
-  // 菱形格（HEALPix 的格子是菱形）：格子越粗，天空越模糊
   mat2 R = mat2(.7071,-.7071,.7071,.7071);
   vec2 q = R*uv;
   float L = floor(uLevel); float cell = .9 / pow(2., L);
@@ -192,65 +168,124 @@ void main(){
   vec2 f = fract(g); float e = min(min(f.x,1.-f.x), min(f.y,1.-f.y)) * cell * uRes.y * .5;
   float seam = (L >= ${LMAX}.) ? 0. : 1.-smoothstep(.6, 1.6, e);
   col *= 1. - .55*seam;
-  float bright = .10 + .90*smoothstep(0., ${T_CLEAR}., uT);
+  // 時間越短越暗、越接近深藍（不是黑）；越久越亮
+  float b = smoothstep(0., ${T_CLEAR}., uT);
+  vec3 deep = vec3(.025,.045,.17) + col*.10;
+  col = mix(deep, col, b);
   float w = smoothstep(${T_PEAK}., ${T_WHITE}., uT);
-  col = col*bright*(1.+2.2*w);
+  col = col*(1.+2.2*w);
   col = mix(col, vec3(1.), w*w);
   col = col/(1.+col*.15);
   gl_FragColor = vec4(pow(col, vec3(1./1.1)), 1.);
 }`;
-function shader(t, s){ const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
-  if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
-const prog = gl.createProgram();
-gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
-gl.linkProgram(prog); gl.useProgram(prog);
-const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
-const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-const U = {}; ["uRes","uTime","uT","uLevel","uSeed","uStab","uAz","uLit","uZen","uHor","uSun","uCl","uCl2"].forEach(k => U[k] = gl.getUniformLocation(prog, k));
+function makeGL(canvas){
+  const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, antialias: false });
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o);
+    if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  const prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = {}; ["uRes","uTime","uT","uLevel","uSeed","uStab","uAz","uLit","uZen","uHor","uSun","uCl","uCl2"].forEach(k => U[k] = gl.getUniformLocation(prog, k));
+  return { gl, U, canvas };
+}
+const levelOf = t => Math.min(LMAX, t / T_CLEAR * LMAX);
+// 畫一片天空：p = { pal, cld, lit, seed, stab, az, t }；t 同時決定亮度與雲的漂移，所以「看到的」和「放上去的」完全一樣
+function render(G, p){
+  const { gl, U, canvas } = G, P = PALETTES[p.pal], C = CLOUDS[p.cld];
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.uniform2f(U.uRes, canvas.width, canvas.height); gl.uniform1f(U.uTime, p.t); gl.uniform1f(U.uT, p.t);
+  gl.uniform1f(U.uLevel, levelOf(p.t)); gl.uniform1f(U.uSeed, p.seed); gl.uniform1f(U.uStab, p.stab); gl.uniform1f(U.uAz, p.az * Math.PI / 180); gl.uniform1f(U.uLit, p.lit);
+  gl.uniform3fv(U.uZen, P[0]); gl.uniform3fv(U.uHor, P[1]); gl.uniform3fv(U.uSun, P[2]);
+  gl.uniform4f(U.uCl, C[0], C[1], C[2], C[3]); gl.uniform2f(U.uCl2, C[4], C[5]);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+const skyC = document.getElementById("sky"), SKY = makeGL(skyC);
+const thumbC = document.createElement("canvas"); thumbC.width = thumbC.height = 72; const THUMB = makeGL(thumbC);
+const sphC = document.getElementById("sphere"), sx = sphC.getContext("2d");
 function resize(){ const d = Math.min(devicePixelRatio || 1, 1.5);
-  for (const c of [skyC, sphC]) { c.width = Math.round(innerWidth * d); c.height = Math.round(innerHeight * d); }
-  gl.viewport(0, 0, skyC.width, skyC.height); }
+  for (const c of [skyC, sphC]) { c.width = Math.round(innerWidth * d); c.height = Math.round(innerHeight * d); } }
 
-/* ---------------- 感測器：仰角、方位、穩定度 ---------------- */
+/* 每一片天空的小圖（快取）：球上看到的，就是觀眾舉起手機時看到的那片天空的正中央 */
+const thumbCache = new Map();
+const recParams = r => ({ pal: r.pal, cld: r.cld, lit: r.lit, seed: r.seed, stab: r.stab ?? 0.5, az: r.az ?? 0, t: r.hold });
+function thumbOf(r){
+  const key = `${r.pal}|${r.cld}|${r.lit}|${r.seed}|${r.stab}|${r.az}|${r.hold}`;
+  let v = thumbCache.get(key); if (v) return v;
+  render(THUMB, recParams(r));
+  const c = document.createElement("canvas"); c.width = c.height = 72; const x = c.getContext("2d"); x.drawImage(thumbC, 0, 0);
+  const d = x.getImageData(0, 0, 72, 72).data; let R = 0, Gc = 0, B = 0; const n = d.length / 4;
+  for (let i = 0; i < d.length; i += 4) { R += d[i]; Gc += d[i+1]; B += d[i+2]; }
+  v = { img: c, rgb: `rgb(${Math.round(R/n)},${Math.round(Gc/n)},${Math.round(B/n)})` };
+  if (thumbCache.size > 6000) thumbCache.clear(); thumbCache.set(key, v); return v;
+}
+
+/* ---------------- 名稱：依實際畫面判斷 ---------------- */
+// 天氣：晴天、薄雲、多雲、霧；時刻：清晨、日出、日落、藍調時刻、夜晚
+function nameOf(r){
+  render(THUMB, Object.assign(recParams(r), { t: Math.min(r.hold, T_PEAK) }));   // 用過曝前的樣子判斷
+  const x = document.createElement("canvas"); x.width = x.height = 72; const g = x.getContext("2d"); g.drawImage(thumbC, 0, 0);
+  const d = g.getImageData(0, 0, 72, 72).data; const avg = (y0, y1) => { let s = [0,0,0], n = 0;
+    for (let y = y0; y < y1; y++) for (let xx = 0; xx < 72; xx++) { const i = (y*72 + xx)*4; s[0] += d[i]; s[1] += d[i+1]; s[2] += d[i+2]; n++; }
+    return s.map(v => v / n / 255); };
+  const all = avg(0, 72), top = avg(0, 24), bot = avg(48, 72);
+  const L = all[0]*.3 + all[1]*.59 + all[2]*.11, warm = bot[0] - bot[2], blue = all[2] - all[0];
+  const sat = Math.max(...all) - Math.min(...all), dayBlue = all[2] > 0.5 && blue > 0.18;
+  let name;
+  if (L < 0.17) name = "夜晚";
+  else if (!dayBlue && L < 0.34) name = warm > 0.10 ? "日落" : "藍調時刻";
+  else if (warm > 0.15) name = SUNRISE.has(r.pal) ? (L > 0.5 ? "日出" : "清晨") : "日落";
+  else if (!dayBlue && (r.pal === 9 || r.pal === 14 || (L < 0.56 && warm > 0.0 && blue > 0.04))) name = "清晨";
+  else {
+    const cov = CLOUDS[r.cld][0];
+    if (FOGGY.has(r.pal) || (cov < 0.25 && sat < 0.08) || (Math.abs(top[2] - bot[2]) < 0.05 && cov > 0.85)) name = "霧";
+    else if (cov < 0.25) name = "晴天";
+    else if (cov < 0.55) name = "薄雲";
+    else name = "多雲";
+  }
+  return r.hold > T_PEAK + 2 ? `${name}（過曝）` : name;
+}
+
+/* ---------------- 感測器：仰角與穩定度（方位不顯示、不使用；各家手機的方位不一定準） ---------------- */
 const S = { mode: "none", elev: 0, az: 0, hist: [], feat: [], fbUp: false, fbElev: 70 };
 function onOri(e){
   if (e.beta == null) return;
   S.mode = "motion";
   const d = Math.PI/180, b = e.beta*d, g = e.gamma*d, a = (e.alpha||0)*d;
   const cX=Math.cos(b), cY=Math.cos(g), cZ=Math.cos(a), sX=Math.sin(b), sY=Math.sin(g), sZ=Math.sin(a);
-  const vx = -(cY*sZ*sX + cZ*sY), vy = -(sZ*sY - cZ*cY*sX), vz = -(cX*cY);   // 背面鏡頭的方向
+  const vx = -(cY*sZ*sX + cZ*sY), vy = -(sZ*sY - cZ*cY*sX), vz = -(cX*cY);
   S.elev = Math.asin(Math.max(-1, Math.min(1, vz))) / d;
   S.az = (Math.atan2(vx, vy) / d + 360) % 360;
   sample();
 }
 function sample(){
   const now = performance.now();
-  S.hist.push([now, S.elev, S.az]); while (S.hist.length && now - S.hist[0][0] > 1000) S.hist.shift();
-  if (run.state === "hold" && run.t < T_MIN) S.feat.push(S.elev, S.az, now % 997);
+  S.hist.push([now, S.elev]); while (S.hist.length && now - S.hist[0][0] > 1000) S.hist.shift();
+  if (S.feat.length < 300) S.feat.push(S.elev, S.az, now % 997);
 }
 function stability(){
   if (S.hist.length < 4) return 0.5;
   let m = 0; for (const h of S.hist) m += h[1]; m /= S.hist.length;
   let v = 0; for (const h of S.hist) v += (h[1]-m)**2; v = Math.sqrt(v / S.hist.length);
-  return Math.max(0, Math.min(1, 1 - v / 4));        // 1 度內算很穩，4 度以上算抖
+  return Math.max(0, Math.min(1, 1 - v / 4));
 }
-// 沒有感測器時（電腦、預覽）：按住畫面＝舉起手機；上下拖曳＝仰角
+// 沒有陀螺儀時（電腦，或手機沒有開放動作感測）：按住畫面＝舉起手機；上下拖曳＝仰角
 let fbY = null;
-skyC.addEventListener("pointerdown", e => { if (S.mode === "motion") return; S.fbUp = true; fbY = e.clientY; skyC.setPointerCapture(e.pointerId); });
+skyC.addEventListener("contextmenu", e => e.preventDefault());
+skyC.addEventListener("pointerdown", e => { if (S.mode === "motion") return; e.preventDefault(); S.fbUp = true; fbY = e.clientY; try { skyC.setPointerCapture(e.pointerId); } catch (_) {} });
 skyC.addEventListener("pointermove", e => { if (!S.fbUp) return;
-  S.fbElev = Math.max(41, Math.min(89, S.fbElev + (fbY - e.clientY) * .15)); fbY = e.clientY;
-  S.elev = S.fbElev; S.az = (S.az + (e.movementX||0)*.3 + 360) % 360; sample(); });
+  S.fbElev = Math.max(31, Math.min(89, S.fbElev + (fbY - e.clientY) * .15)); fbY = e.clientY; S.elev = S.fbElev; sample(); });
 const fbEnd = () => { S.fbUp = false; };
 skyC.addEventListener("pointerup", fbEnd); skyC.addEventListener("pointercancel", fbEnd);
 
 /* ---------------- 聲音：v41 的訊號聲 ---------------- */
-let AC = null, noise = null, noiseGain = null, nextBlip = 0;
+let AC = null, noiseGain = null, nextBlip = 0;
 function audioStart(){
   try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
   const len = AC.sampleRate * 2, nb = AC.createBuffer(1, len, AC.sampleRate), ch = nb.getChannelData(0);
   for (let i = 0; i < len; i++) ch[i] = Math.random()*2-1;
-  noise = AC.createBufferSource(); noise.buffer = nb; noise.loop = true;
+  const noise = AC.createBufferSource(); noise.buffer = nb; noise.loop = true;
   const hp = AC.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 2500;
   noiseGain = AC.createGain(); noiseGain.gain.value = 0;
   noise.connect(hp); hp.connect(noiseGain); noiseGain.connect(AC.destination); noise.start();
@@ -265,7 +300,7 @@ function blip(at){
 function audioTick(t, live){
   if (!AC) return;
   const now = AC.currentTime;
-  if (live && t > T_MIN && t < T_PEAK) {          // 每秒約 14 聲，固定不加速
+  if (live && t > 0.5 && t < T_PEAK) {
     if (nextBlip < now) nextBlip = now;
     while (nextBlip < now + 0.1) { blip(nextBlip); nextBlip += -Math.log(1 - Math.random()) / 14; }
   }
@@ -273,112 +308,73 @@ function audioTick(t, live){
   noiseGain.gain.setTargetAtTime(t >= T_WHITE || !live ? 0 : 0.08*w*w, now, 0.05);
 }
 
-/* ---------------- 原型選擇：細微特徵打散；仰角決定天色冷暖 ---------------- */
+/* ---------------- 原型選擇：一舉起就決定（看到的就是放上去的） ---------------- */
 function fnv(arr){ let h = 2166136261 >>> 0; for (const x of arr) { const v = Math.round(x*1000) | 0;
   for (let k = 0; k < 4; k++) { h ^= (v >>> (k*8)) & 255; h = Math.imul(h, 16777619) >>> 0; } } return h; }
 function chooseArchetype(){
   const hv = fnv(S.feat.concat([performance.now(), Date.now() % 100000]));
-  const band = Math.max(0, Math.min(4, Math.floor((90 - S.elev) / 10)));   // 90°→0（深）… 45°→4（暖）
-  // 多數時候依仰角分組；約三分之一的機會從全部 20 種天色裡抽，讓同一個角度也會遇到不同色調
+  const band = Math.max(0, Math.min(4, Math.floor((90 - S.elev) / 12)));
   const pal = ((hv >>> 20) % 3 === 0) ? (hv >>> 22) % 20 : band*4 + (hv & 3), cld = (hv >>> 3) % 10, lit = (hv >>> 9) % 5;
-  return { pal, cld, lit, arch: pal*50 + cld*5 + lit, seed: ((hv >>> 13) % 1000) / 37.0 };
+  return { pal, cld, lit, arch: pal*50 + cld*5 + lit, seed: +(((hv >>> 13) % 1000) / 37.0).toFixed(3) };
 }
 
-/* ---------------- HEALPix：方向 → 格子；格子 → 角點 ---------------- */
-const NS = 8, PI = Math.PI;
-function faceXY(f, u, v){
-  let xc, yc;
-  if (f < 4) { xc = PI/4 + f*PI/2; yc = PI/4; } else if (f < 8) { xc = (f-4)*PI/2; yc = 0; } else { xc = PI/4 + (f-8)*PI/2; yc = -PI/4; }
-  return [xc + (u-v)*PI/4, yc + (u+v-1)*PI/4];
+/* ---------------- 1,200 格等面積緯度環格網（與錄像同一套） ---------------- */
+const PI = Math.PI, NBASE = 1200;
+const pyRound = x => { const f = Math.floor(x), r = x - f; return r > 0.5 ? f + 1 : r < 0.5 ? f : (f % 2 === 0 ? f : f + 1); };
+const GRID = (() => {
+  const A = 4*PI/NBASE, tc = Math.acos(1 - A/(2*PI)), nc = pyRound((PI - 2*tc)/Math.sqrt(A)), d = (PI - 2*tc)/nc;
+  const rings = [1]; let acc = 0;
+  for (let i = 0; i < nc; i++) { const ideal = 2*PI*(Math.cos(tc + d*i) - Math.cos(tc + d*(i+1)))/A + acc; const n = pyRound(ideal); acc = ideal - n; rings.push(n); }
+  rings.push(1); rings[Math.floor(rings.length/2)] += NBASE - rings.reduce((a, b) => a + b, 0);
+  const zb = [1]; let s = 0; for (const n of rings) { s += n; zb.push(1 - 2*s/NBASE); }
+  const off = []; s = 0; for (const n of rings) { off.push(s); s += n; }
+  const ringOf = new Int16Array(NBASE); rings.forEach((n, i) => { for (let j = 0; j < n; j++) ringOf[off[i] + j] = i; });
+  return { rings, zb, off, ringOf };
+})();
+const stag = o => (o * 0.6180339887) % 1;
+// 切分：第 L 次（L 奇數）沿經線中線切成左右兩半；（L 偶數）沿緯線中線切成上下兩半
+const dims = L => [2 ** Math.ceil(L/2), 2 ** Math.floor(L/2)];
+function dirOf(ring, col, u, v){   // 基本格內的 (u, v) → 球面方向
+  const n = GRID.rings[ring], zt = GRID.zb[ring], zbt = GRID.zb[ring+1];
+  const z = zt - (zt - zbt)*v, r = Math.sqrt(Math.max(0, 1 - z*z)), ph = ((col + u)/n - stag(GRID.off[ring]))*2*PI;
+  return [r*Math.cos(ph), z, -r*Math.sin(ph)];   // y 朝上
 }
-function xy2dir(x, y){
-  x = ((x + PI) % (2*PI) + 2*PI) % (2*PI) - PI;
-  let z, phi;
-  if (Math.abs(y) <= PI/4) { z = 8*y/(3*PI); phi = x; }
-  else { const s = Math.max(2 - 4*Math.abs(y)/PI, 0); z = Math.sign(y)*(1 - s*s/3);
-    const pc = -PI + (2*Math.floor((x+PI)/(PI/2)) + 1)*PI/4; phi = s > 1e-9 ? pc + (x-pc)/s : pc; }
-  const r = Math.sqrt(Math.max(0, 1 - z*z)); return [r*Math.cos(phi), r*Math.sin(phi), z];
+function polyOf(base, iu, iv, L){
+  const ring = GRID.ringOf[base], col = base - GRID.off[ring], [nu, nv] = dims(L);
+  const u0 = iu/nu, u1 = (iu+1)/nu, v0 = iv/nv, v1 = (iv+1)/nv, k = 4, pts = [];
+  for (let i = 0; i < k; i++) pts.push(dirOf(ring, col, u0 + (u1-u0)*i/k, v0));
+  for (let i = 0; i < k; i++) pts.push(dirOf(ring, col, u1, v0 + (v1-v0)*i/k));
+  for (let i = 0; i < k; i++) pts.push(dirOf(ring, col, u1 - (u1-u0)*i/k, v1));
+  for (let i = 0; i < k; i++) pts.push(dirOf(ring, col, u0, v1 - (v1-v0)*i/k));
+  return { pts, c: dirOf(ring, col, (u0+u1)/2, (v0+v1)/2) };
 }
-function dir2cell(elev, az){
-  const z = Math.sin(elev*PI/180), phi = Math.atan2(Math.cos(az*PI/180), Math.sin(az*PI/180));
-  let x, y;
-  if (Math.abs(z) <= 2/3) { x = phi; y = 3*PI/8*z; }
-  else { const s = Math.sqrt(3*(1-Math.abs(z))); const pc = -PI + (2*Math.floor((phi+PI)/(PI/2)) + 1)*PI/4;
-    x = pc + (phi-pc)*s; y = Math.sign(z)*PI/4*(2-s); }
-  for (let f = 0; f < 12; f++) for (const dx of [0, 2*PI, -2*PI]) {
-    const [xc, yc] = faceXY(f, .5, .5); const a = (x + dx - xc)/(PI/4), b = (y - yc)/(PI/4) + 1;
-    const u = (a + b)/2, v = (b - a)/2;
-    if (u >= -1e-9 && u <= 1 && v >= -1e-9 && v <= 1) {
-      const iu = Math.min(NS-1, Math.floor(u*NS)), iv = Math.min(NS-1, Math.floor(v*NS));
-      return f*NS*NS + iv*NS + iu;
+const BASEPOLY = Array.from({ length: NBASE }, (_, b) => polyOf(b, 0, 0, 0));
+// 仰角 30°–90° 拉伸對應整顆球：舉得低放在球的下方，舉到正上方放在頂端
+function ringForElev(e){
+  const z = -1 + 2*Math.max(0, Math.min(1, (e - 30)/60));
+  for (let i = 0; i < GRID.rings.length; i++) if (z >= GRID.zb[i+1]) return i;
+  return GRID.rings.length - 1;
+}
+// 依時間順序重新排一次：先放滿 1,200 格；全部滿了，整顆球同時對切；高度照仰角、左右隨機；那一圈滿了就放到最近一圈
+function layoutAll(recs){
+  const sorted = recs.slice().sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : (a.id||0) - (b.id||0)));
+  let L = 0; const occ = new Map(); const key = (b, iu, iv) => `${b}:${iu}:${iv}`; let splits = [];
+  for (const r of sorted) {
+    if (occ.size >= NBASE * 2 ** L) {     // 滿了：整顆球同時對切，原本的天空留在前半格
+      L++; splits.push(r.created_at); const odd = L % 2 === 1; const moved = [...occ.values()]; occ.clear();
+      for (const q of moved) { const s = q._slot; if (odd) s.iu *= 2; else s.iv *= 2; occ.set(key(s.base, s.iu, s.iv), q); }
+    }
+    const [nu, nv] = dims(L), r0 = ringForElev(r.elev), h = fnv([r.seed, r.hold, r.stab ?? 0, Date.parse(r.created_at) % 1e7]);
+    let placed = false;
+    for (let dr = 0; dr < GRID.rings.length && !placed; dr++) for (const sgn of dr ? [1, -1] : [1]) {
+      const ring = r0 + sgn*dr; if (ring < 0 || ring >= GRID.rings.length || placed) continue;
+      const n = GRID.rings[ring], empty = [];
+      for (let c = 0; c < n; c++) for (let iv = 0; iv < nv; iv++) for (let iu = 0; iu < nu; iu++) { const b = GRID.off[ring] + c; if (!occ.has(key(b, iu, iv))) empty.push([b, iu, iv]); }
+      if (empty.length) { const [b, iu, iv] = empty[h % empty.length]; r._slot = { base: b, iu, iv }; occ.set(key(b, iu, iv), r); placed = true; }
     }
   }
-  return 0;
-}
-// 細分：基本 768 格（NS=8），同一格再有人來就分成 4 小格，最多分 3 次（NS=64，每個方向最多 64 片天空）。
-// 最細的格子也滿了，之後再來的人會讓那一格慢慢過曝變白。
-const NSF = 64, MAXSIZE = NSF / NS;
-function dir2fine(elev, az){
-  const z = Math.sin(elev*PI/180), phi = Math.atan2(Math.cos(az*PI/180), Math.sin(az*PI/180));
-  let x, y;
-  if (Math.abs(z) <= 2/3) { x = phi; y = 3*PI/8*z; }
-  else { const s = Math.sqrt(3*(1-Math.abs(z))); const pc = -PI + (2*Math.floor((phi+PI)/(PI/2)) + 1)*PI/4;
-    x = pc + (phi-pc)*s; y = Math.sign(z)*PI/4*(2-s); }
-  for (let f = 0; f < 12; f++) for (const dx of [0, 2*PI, -2*PI]) {
-    const [xc, yc] = faceXY(f, .5, .5); const a = (x + dx - xc)/(PI/4), b = (y - yc)/(PI/4) + 1;
-    const u = (a + b)/2, v = (b - a)/2;
-    if (u >= -1e-9 && u <= 1 && v >= -1e-9 && v <= 1)
-      return { f, iu: Math.min(NSF-1, Math.floor(u*NSF)), iv: Math.min(NSF-1, Math.floor(v*NSF)) };
-  }
-  return { f: 0, iu: 0, iv: 0 };
-}
-function polyOf(f, u0, v0, sz){   // 以細格單位 (0..64) 描述的一塊四邊形 → 球面上的點
-  const pts = [], k = Math.max(2, Math.min(4, sz));
-  const P = (u, v) => xy2dir(...faceXY(f, u/NSF, v/NSF));
-  for (let i = 0; i < k; i++) pts.push(P(u0 + sz*i/k, v0));
-  for (let i = 0; i < k; i++) pts.push(P(u0 + sz, v0 + sz*i/k));
-  for (let i = 0; i < k; i++) pts.push(P(u0 + sz - sz*i/k, v0 + sz));
-  for (let i = 0; i < k; i++) pts.push(P(u0, v0 + sz - sz*i/k));
-  return { pts, c: P(u0 + sz/2, v0 + sz/2) };
-}
-function buildTree(recs){
-  const roots = new Map();
-  const sorted = recs.slice().sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0));
-  for (const r of sorted) {
-    if (!r._fine) r._fine = dir2fine(r.elev, r.az);
-    const { f, iu, iv } = r._fine, key = f*NS*NS + (iv >> 3)*NS + (iu >> 3);
-    if (!roots.has(key)) roots.set(key, { f, u0: (iu >> 3) * MAXSIZE, v0: (iv >> 3) * MAXSIZE, sz: MAXSIZE, rec: null, kids: null, extra: 0, n: 0 });
-    insert(roots.get(key), r);
-  }
-  return roots;
-}
-function insert(node, r){
-  node.n++;
-  if (node.kids) { kidFor(node, r).n; insert(kidFor(node, r), r); return; }
-  if (!node.rec) { node.rec = r; r._leaf = node; return; }
-  if (node.sz > 1) {
-    const h = node.sz / 2; node.kids = [];
-    for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) node.kids.push({ f: node.f, u0: node.u0 + i*h, v0: node.v0 + j*h, sz: h, rec: null, kids: null, extra: 0, n: 0 });
-    const old = node.rec; node.rec = null; insert(kidFor(node, old), old); insert(kidFor(node, r), r); return;
-  }
-  node.extra++; r._leaf = node;                       // 最細的格子滿了：過曝
-}
-function kidFor(node, r){
-  const h = node.sz / 2, i = r._fine.iu >= node.u0 + h ? 1 : 0, j = r._fine.iv >= node.v0 + h ? 1 : 0;
-  return node.kids[j*2 + i];
-}
-function leaves(roots){
-  const out = [];
-  const walk = n => { if (n.kids) n.kids.forEach(walk); else if (n.rec) out.push(n); };
-  roots.forEach(walk); return out;
-}
-const whiteOf = n => 1 - Math.pow(0.72, n.extra);
-const CELLS = [];
-for (let f = 0; f < 12; f++) for (let iv = 0; iv < NS; iv++) for (let iu = 0; iu < NS; iu++) {
-  const pts = [];
-  const edge = (u0,v0,u1,v1) => { for (let k = 0; k < 3; k++) { const s = k/3; pts.push(xy2dir(...faceXY(f, (u0+(u1-u0)*s)/NS, (v0+(v1-v0)*s)/NS))); } };
-  edge(iu,iv,iu+1,iv); edge(iu+1,iv,iu+1,iv+1); edge(iu+1,iv+1,iu,iv+1); edge(iu,iv+1,iu,iv);
-  CELLS.push({ pts, c: xy2dir(...faceXY(f, (iu+.5)/NS, (iv+.5)/NS)) });
+  for (const r of sorted) r._L = L;
+  return { recs: sorted, L, splits };
 }
 
 /* ---------------- 儲存：Supabase（正式）或本機示範 ---------------- */
@@ -388,26 +384,24 @@ const store = {
     if (this.remote) { try {
       const all = [];
       for (let off = 0; off < CONFIG.keep; off += 1000) {
-        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${CONFIG.table}?select=*&order=created_at.desc&limit=1000&offset=${off}`,
-          { headers: { apikey: CONFIG.supabaseKey } });
+        const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${CONFIG.table}?select=*&order=created_at.asc&limit=1000&offset=${off}`, { headers: { apikey: CONFIG.supabaseKey } });
         if (!r.ok) throw new Error("http " + r.status); const page = await r.json(); all.push(...page); if (page.length < 1000) break;
       }
-      return all; } catch (e) { this.remote = false; this.offline = true; } }   // 連不上：退回本機示範
-    try { return JSON.parse(localStorage.getItem("yangwang_skies") || "[]"); } catch (e) { return []; }
+      return all; } catch (e) { this.remote = false; this.offline = true; } }
+    try { return JSON.parse(localStorage.getItem("guopu_skies") || "[]"); } catch (e) { return []; }
   },
   async add(rec){
     if (this.remote) { try { const r = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${CONFIG.table}`, { method: "POST",
       headers: { apikey: CONFIG.supabaseKey, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify(Object.fromEntries(Object.entries(rec).filter(([k]) => !k.startsWith("_") && k !== "created_at"))) });
       if (r.ok) return; } catch (e) {} this.remote = false; this.offline = true; }
-    try { const a = JSON.parse(localStorage.getItem("yangwang_skies") || "[]"); a.unshift(rec);
-      localStorage.setItem("yangwang_skies", JSON.stringify(a.slice(0, 3000))); } catch (e) {}
+    try { const a = JSON.parse(localStorage.getItem("guopu_skies") || "[]"); a.push(rec);
+      localStorage.setItem("guopu_skies", JSON.stringify(a.slice(-3000))); } catch (e) {}
   }
 };
 
 /* ---------------- 共同天空球（2D 投影） ---------------- */
-const sphC = document.getElementById("sphere"), sx = sphC.getContext("2d");
-function rotTo(c){ // 把方向 c 轉到正對觀者 (0,0,1)
+function rotTo(c){
   const [x,y,z] = c, ax = [y, -x, 0], s = Math.hypot(ax[0], ax[1]), ang = Math.acos(Math.max(-1, Math.min(1, z)));
   if (s < 1e-6) return p => p.slice();
   const k = [ax[0]/s, ax[1]/s, 0], co = Math.cos(ang), si = Math.sin(ang);
@@ -416,12 +410,7 @@ function rotTo(c){ // 把方向 c 轉到正對觀者 (0,0,1)
     return [p[0]*co + cr[0]*si + k[0]*d*(1-co), p[1]*co + cr[1]*si + k[1]*d*(1-co), p[2]*co + cr[2]*si]; };
 }
 function spinY(a){ const c = Math.cos(a), s = Math.sin(a); return p => [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c]; }
-function cellColor(rec){
-  const P = PALETTES[rec.pal], k = Math.max(.1, Math.min(1, rec.hold / T_CLEAR)), w = Math.max(0, Math.min(1, (rec.hold - T_PEAK)/(T_WHITE - T_PEAK)));
-  const m = (i) => { const v = (P[0][i]*.45 + P[1][i]*.55) * (.6 + .4*k) * (1 + CLOUDS[rec.cld][0]*.4) * 1.15; return Math.round(255*Math.min(1, v + (1-v)*w*w)); };
-  return `rgb(${m(0)},${m(1)},${m(2)})`;
-}
-function drawSphere(roots, mine, rot, img, alpha, zoom = 1){
+function drawSphere(lay, mine, rot, alpha, zoom = 1){
   const W = sphC.width, H = sphC.height, R0 = Math.min(W, H) * .4, R = R0 * zoom, cx = W/2, cy = H*.47;
   sx.clearRect(0, 0, W, H); sx.globalAlpha = alpha;
   const g = sx.createRadialGradient(cx - R*.3, cy - R*.35, R*.1, cx, cy, R*1.05);
@@ -429,62 +418,58 @@ function drawSphere(roots, mine, rot, img, alpha, zoom = 1){
   sx.fillStyle = g; sx.beginPath(); sx.arc(cx, cy, R, 0, 2*PI); sx.fill();
   const path = pts => { sx.beginPath(); pts.forEach((p, j) => { const X = cx + p[0]*R, Y = cy - p[1]*R; j ? sx.lineTo(X, Y) : sx.moveTo(X, Y); }); sx.closePath(); };
   const onScreen = c => { const X = cx + c[0]*R, Y = cy - c[1]*R; return X > -R*.2 && X < W + R*.2 && Y > -R*.2 && Y < H + R*.2; };
-  // 基本 768 格的格線
-  sx.lineWidth = Math.max(1, R0/400);
-  CELLS.forEach(cell => { const c = rot(cell.c); if (c[2] < 0.02 || (zoom > 1.5 && !onScreen(c))) return;
-    path(cell.pts.map(rot)); sx.strokeStyle = `rgba(201,195,242,${.06 + .18*c[2]})`; sx.stroke(); });
-  // 有天空的格子（含細分）
-  for (const n of leaves(roots)) {
-    if (!n._poly) n._poly = polyOf(n.f, n.u0, n.v0, n.sz);
-    const c = rot(n._poly.c); if (c[2] < 0.02 || (zoom > 1.5 && !onScreen(c))) continue;
-    const pts = n._poly.pts.map(rot); path(pts);
-    const shade = .35 + .65*c[2], isMine = mine && mine._leaf === n;
-    sx.fillStyle = cellColor(n.rec); sx.globalAlpha = alpha*shade; sx.fill(); sx.globalAlpha = alpha;
-    if (isMine && img && !n.extra) {
+  sx.lineWidth = Math.max(1, R0/450);
+  BASEPOLY.forEach(cell => { const c = rot(cell.c); if (c[2] < 0.02 || (zoom > 1.5 && !onScreen(c))) return;
+    path(cell.pts.map(rot)); sx.strokeStyle = `rgba(201,195,242,${.05 + .15*c[2]})`; sx.stroke(); });
+  const cellPx = R * Math.sqrt(4*PI/(NBASE * 2 ** lay.L));
+  for (const r of lay.recs) {
+    if (!r._slot) continue;
+    if (!r._poly || r._polyL !== lay.L) { r._poly = polyOf(r._slot.base, r._slot.iu, r._slot.iv, lay.L); r._polyL = lay.L; }
+    const c = rot(r._poly.c); if (c[2] < 0.02 || (zoom > 1.5 && !onScreen(c))) continue;
+    const pts = r._poly.pts.map(rot); path(pts);
+    const shade = .35 + .65*c[2], isMine = mine === r, T = thumbOf(r);
+    sx.globalAlpha = alpha*shade;
+    if (cellPx * c[2] > 7 || isMine) {      // 夠大的格子畫天空小圖，太小的畫平均色
       sx.save(); sx.clip(); const xs = pts.map(p => cx + p[0]*R), ys = pts.map(p => cy - p[1]*R);
       const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs), y1 = Math.max(...ys);
-      sx.drawImage(img, x0, y0, x1 - x0, y1 - y0); sx.restore();
-    }
-    const w = whiteOf(n); if (w > 0) { path(pts); sx.fillStyle = `rgba(255,255,255,${w})`; sx.globalAlpha = alpha; sx.fill(); }
+      sx.drawImage(T.img, x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0)); sx.restore();
+    } else { sx.fillStyle = T.rgb; sx.fill(); }
     sx.globalAlpha = alpha;
-    path(pts); sx.strokeStyle = `rgba(235,232,255,${.25 + .35*c[2]})`; sx.lineWidth = Math.max(.8, R0/500); sx.stroke();
+    path(pts); sx.strokeStyle = `rgba(235,232,255,${.18 + .3*c[2]})`; sx.lineWidth = Math.max(.6, R0/600); sx.stroke();
     if (isMine) { path(pts); sx.strokeStyle = "rgba(255,255,255,.95)"; sx.lineWidth = Math.max(2, R0/160); sx.stroke(); }
   }
   const rim = sx.createRadialGradient(cx, cy, R*.92, cx, cy, R*1.04);
   rim.addColorStop(0, "rgba(201,195,242,0)"); rim.addColorStop(.6, "rgba(201,195,242,.18)"); rim.addColorStop(1, "rgba(201,195,242,0)");
   sx.fillStyle = rim; sx.beginPath(); sx.arc(cx, cy, R*1.04, 0, 2*PI); sx.fill(); sx.globalAlpha = 1;
 }
-function stats(roots){
-  let n = 0, white = 0, split = 0; const ls = leaves(roots);
-  roots.forEach(r => n += r.n); for (const l of ls) { if (l.extra >= 3) white++; if (l.sz < MAXSIZE) split++; }
-  return { n, cells: ls.length, white, bases: roots.size };
-}
 
 /* ---------------- 流程 ---------------- */
 const $ = id => document.getElementById(id);
-const run = { state: "intro", t: 0, last: 0, arch: null, level: 0, dropped: 0 };
+const run = { state: "intro", t: 0, last: 0, arch: null, dropped: 0 };
 function setHint(s){ $("hint").hidden = !s; $("hint").textContent = s || ""; }
+const idleHint = () => S.mode === "touch" ? "按住畫面，代替舉起手機；上下拖曳改變高度" : "把手機舉過頭，看向天空";
 function begin(){
-  run.state = "wait"; run.t = 0; run.level = 0; run.arch = null; S.feat = []; S.hist = [];
+  run.state = "wait"; run.t = 0; run.arch = null; S.feat = []; S.hist = [];
   $("intro").hidden = true; $("again").hidden = true; $("hud").hidden = false;
-  sx.clearRect(0, 0, sphC.width, sphC.height);
-  setHint(S.mode === "motion" ? "把手機舉過頭，看向天空" : "按住畫面＝舉起手機；上下拖曳改變仰角");
+  sx.clearRect(0, 0, sphC.width, sphC.height); skyC.style.opacity = "1";
+  setHint(idleHint());
 }
 const isUp = () => S.mode === "motion" ? S.elev > ELEV_UP : S.fbUp;
 async function finish(){
   run.state = "place"; setHint("");
   const E = run.upElev ?? S.elev, A = run.upAz ?? S.az, ST = run.stabT ? run.stabSum / run.stabT : stability();
-  const hold = Math.min(run.t, T_WHITE), cell = dir2cell(E, A);
+  const hold = Math.min(run.t, T_WHITE);
   view.on = false;
-  const rec = { created_at: new Date().toISOString(), elev: +E.toFixed(2), az: +A.toFixed(2), hold: +hold.toFixed(2),
-    stab: +Math.max(0, Math.min(1, ST)).toFixed(3), pal: run.arch.pal, cld: run.arch.cld, lit: run.arch.lit, arch: run.arch.arch, seed: +run.arch.seed.toFixed(3), cell };
-  const snap = snapshotSky();
+  const rec = { created_at: new Date().toISOString(), elev: +Math.max(30, Math.min(90, E)).toFixed(2), az: +A.toFixed(2), hold: +hold.toFixed(2),
+    stab: +Math.max(0, Math.min(1, ST)).toFixed(3), pal: run.arch.pal, cld: run.arch.cld, lit: run.arch.lit, arch: run.arch.arch, seed: run.arch.seed, cell: 0 };
   const recs = await store.recent(); store.add(rec);
-  const roots = buildTree(recs.concat([rec]));
-  const leaf = rec._leaf; if (!leaf._poly) leaf._poly = polyOf(leaf.f, leaf.u0, leaf.v0, leaf.sz);
-  const toFront = rotTo(leaf._poly.c), t0 = performance.now();
-  const W0 = sphC.width, leafPx = Math.min(sphC.width, sphC.height) * .4 * leaf.sz * 1.0233 / NSF;
-  const zoom0 = Math.max(1, Math.min(40, W0 * .32 / leafPx));
+  const lay = layoutAll(recs.concat([rec]));
+  const splitNow = lay.splits.length && lay.splits[lay.splits.length - 1] === rec.created_at;
+  if (!rec._poly) { rec._poly = polyOf(rec._slot.base, rec._slot.iu, rec._slot.iv, lay.L); rec._polyL = lay.L; }
+  const toFront = rotTo(rec._poly.c), t0 = performance.now();
+  const W0 = sphC.width, leafPx = Math.min(sphC.width, sphC.height) * .4 * Math.sqrt(4*PI/(NBASE * 2 ** lay.L));
+  const zoom0 = Math.max(1, Math.min(60, W0 * .32 / leafPx));
+  const name = nameOf(rec);
   (function anim(){
     const s = (performance.now() - t0) / 1000;
     const shrink = Math.min(1, s / 1.6), e = 1 - (1-shrink)**3;
@@ -492,76 +477,59 @@ async function finish(){
     const spin = s < 5.5 ? 0 : (s - 5.5) * .07;
     const rot = p => spinY(spin)(toFront(p));
     const zt = Math.min(1, Math.max(0, (s - 2.2) / 3)), ze = zt*zt*(3 - 2*zt);
-    drawSphere(roots, rec, rot, snap, Math.min(1, s / .8), zoom0 * Math.pow(1 / zoom0, ze));
-    if (s < 4) setHint(s > 1.6 ? (leaf.extra ? "你看的方向已經被看太多次，這一格正在過曝" : leaf.sz < MAXSIZE ? "這個方向有別人也看過，格子分開了" : "你的天空，在這一格") : "");
+    drawSphere(lay, rec, rot, Math.min(1, s / .8), zoom0 * Math.pow(1 / zoom0, ze));
+    if (s < 4) setHint(s > 1.6 ? (splitNow ? "球滿了，所有的格子剛剛一起分成兩半" : "你的天空，在這一格") : "");
     else setHint("");
     if (s < 12) requestAnimationFrame(anim);
     else { run.state = "done"; $("hud").hidden = true; $("again").hidden = false;
-      const P = PALETTES[rec.pal][3], C = CLOUDS[rec.cld][6], Li = LIGHTS[rec.lit];
-      const tot = recs.length + 1;
-      $("placedText").textContent = `${P}・${C}・${Li}　第 ${rec.arch + 1} 種天空，停留 ${rec.hold.toFixed(1)} 秒。` + (tot > 1 ? `它已經混進其他 ${tot - 1} 片天空裡。` : `你是第一個留下天空的人。`);
-      $("storeNote").textContent = store.remote ? "" : store.offline ? "目前連不上共同的天空，這片天空先留在這支手機裡。" : "本機示範：球上只有這支手機留下的天空。正式版會顯示所有觀眾留下的天空。"; }
+      const tot = lay.recs.length;
+      $("placedText").textContent = `${name}・停留 ${rec.hold.toFixed(1)} 秒。` + (tot > 1 ? `它已經混進其他 ${tot - 1} 片天空裡。` : `你是第一個留下天空的人。`);
+      $("storeNote").textContent = store.remote ? "" : store.offline ? "目前連不上共同的天空，這片天空先留在這支手機裡。" : "本機示範：球上只有這支手機留下的天空。"; }
   })();
 }
-function drawSky(now){
-  const a = run.arch || { pal: 8, cld: 3, lit: 4, seed: 1 };
-  const P = PALETTES[a.pal], C = CLOUDS[a.cld];
-  gl.uniform2f(U.uRes, skyC.width, skyC.height); gl.uniform1f(U.uTime, now / 1000); gl.uniform1f(U.uT, run.t);
-  gl.uniform1f(U.uLevel, run.level); gl.uniform1f(U.uSeed, a.seed); gl.uniform1f(U.uStab, stability()); gl.uniform1f(U.uAz, S.az*PI/180); gl.uniform1f(U.uLit, a.lit);
-  gl.uniform3fv(U.uZen, P[0]); gl.uniform3fv(U.uHor, P[1]); gl.uniform3fv(U.uSun, P[2]);
-  gl.uniform4f(U.uCl, C[0], C[1], C[2], C[3]); gl.uniform2f(U.uCl2, C[4], C[5]);
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
-}
-// 放上球的那一刻，把這片天空縮成一張小圖；如果擷取失敗（全黑），就改用格子的顏色
-function snapshotSky(){
-  drawSky(performance.now());
-  const c = document.createElement("canvas"); c.width = 192; c.height = 192; const x = c.getContext("2d");
-  try { x.drawImage(skyC, (skyC.width - skyC.height * .6) / 2, skyC.height * .2, skyC.height * .6, skyC.height * .6, 0, 0, 192, 192); } catch (e) { return null; }
-  const d = x.getImageData(0, 0, 192, 192).data; let sum = 0; for (let i = 0; i < d.length; i += 4 * 37) sum += d[i] + d[i+1] + d[i+2];
-  return sum / (d.length / (4 * 37)) / 3 > 6 ? c : null;
-}
 function frame(now){
-  const dt = Math.min(.5, (now - (run.last || now)) / 1000); run.last = now;   // 用真實經過的時間；慢手機掉格也不會變慢
-  if (run.state === "wait") { if (isUp()) { run.state = "hold"; run.t = 0; run.stabSum = 0; run.stabT = 0; run.upElev = S.elev; run.upAz = S.az; } }
+  const dt = Math.min(.5, (now - (run.last || now)) / 1000); run.last = now;
+  if (run.state === "wait") { if (isUp()) { run.state = "hold"; run.t = 0; run.stabSum = 0; run.stabT = 0; run.upElev = S.elev; run.upAz = S.az; run.arch = chooseArchetype(); setHint(""); } }
   else if (run.state === "hold") {
-    if (isUp()) { run.t += dt; run.dropped = 0;
-      run.upElev = S.elev; run.upAz = S.az; run.stabSum += stability() * dt; run.stabT += dt; }   // 記下「舉著時」的方向與穩定度
+    if (isUp()) { run.t += dt; run.dropped = 0; run.upElev = S.elev; run.upAz = S.az; run.stabSum += stability() * dt; run.stabT += dt; }
     else { run.dropped += dt;
-      if (run.dropped > .35) { if (run.t < T_MIN) { run.state = "wait"; run.t = 0; S.feat = []; setHint(S.mode === "motion" ? "把手機舉過頭，看向天空" : "按住畫面＝舉起手機；上下拖曳改變仰角"); } else { finish(); } } }
-    if (run.t >= T_MIN && !run.arch) run.arch = chooseArchetype();
+      if (run.dropped > .35) { if (run.t < T_ACCIDENT) { run.state = "wait"; run.t = 0; run.arch = null; S.feat = []; setHint(idleHint()); } else finish(); } }
     if (run.t >= T_WHITE) finish();
   }
   const live = run.state === "hold";
-  run.level = run.t < T_MIN ? 0 : Math.min(LMAX, 1 + (run.t - T_MIN) / (T_CLEAR - T_MIN) * LMAX);
-  if (run.state !== "place" && run.state !== "done" && !view.on) { skyC.style.opacity = "1"; drawSky(now); }
+  if ((run.state === "wait" || run.state === "hold") && !view.on) {
+    skyC.style.opacity = "1";
+    const a = run.arch || { pal: 1, cld: 0, lit: 4, seed: 1 };
+    render(SKY, { pal: a.pal, cld: a.cld, lit: a.lit, seed: a.seed, stab: stability(), az: run.upAz ?? S.az, t: run.t });
+  }
   audioTick(run.t, live);
   if (run.state === "wait" || run.state === "hold") {
-    $("hudL").textContent = S.mode === "motion" ? `仰角 ${S.elev.toFixed(0)}°　方位 ${S.az.toFixed(0)}°` : `模擬仰角 ${S.elev.toFixed(0)}°（感測器未啟用）`;
-    $("hudR").textContent = run.state === "hold" ? `${run.t.toFixed(1)} 秒　第 ${Math.floor(run.level)} 層` : "";
-    if (run.state === "hold") setHint(run.t < T_MIN ? "繼續看著" : run.t < T_CLEAR ? "天空正在被算出來" : run.t < T_PEAK ? "最清楚的時候，可以放下了" : "太亮了");
+    $("hudL").textContent = S.mode === "motion" ? `仰角 ${Math.max(0, S.elev).toFixed(0)}°` : "";
+    $("hudR").textContent = run.state === "hold" ? `${run.t.toFixed(1)} 秒` : "";
+    if (run.state === "hold") setHint(run.t < 1.5 ? "繼續看著" : run.t < T_CLEAR ? "天空正在被算出來" : run.t < T_PEAK ? "最清楚的時候，可以放下了" : "太亮了");
   }
   requestAnimationFrame(frame);
 }
 
-/* ---------------- 觀看共同的球（任何時候都能回來看） ---------------- */
-const view = { on: false, roots: new Map(), yaw: 0, pitch: -0.5, drag: null, auto: true, last: 0, demo: false, timer: 0, newest: null, hold: 0 };
+/* ---------------- 觀看共同的球 ---------------- */
+const view = { on: false, lay: { recs: [], L: 0, splits: [] }, yaw: 0, pitch: -0.5, drag: null, last: 0, demo: false, timer: 0, newest: null, hold: 0 };
 function viewRot(){ const y = spinY(view.yaw), cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
   return p => { const q = y(p); return [q[0], q[1]*cp - q[2]*sp, q[1]*sp + q[2]*cp]; }; }
 async function viewLoad(){
   if (view.demo) return;
-  const recs = await store.recent(); view.roots = buildTree(recs);
-  const newest = recs.reduce((a, r) => (!a || r.created_at > a.created_at ? r : a), null);
-  if (newest && (!view.newest || newest.created_at !== view.newest.created_at)) {   // 轉到最新的一片天空
-    view.newest = newest; const L = newest._leaf; if (!L._poly) L._poly = polyOf(L.f, L.u0, L.v0, L.sz);
-    const [x, y, z] = L._poly.c, r = Math.hypot(x, z); view.yaw = Math.atan2(-x, z); view.pitch = Math.atan2(y, r) ; view.hold = 6;
+  const recs = await store.recent(); view.lay = layoutAll(recs);
+  const newest = view.lay.recs[view.lay.recs.length - 1] || null;
+  if (newest && (!view.newest || newest.created_at !== view.newest.created_at)) {
+    const p = polyOf(newest._slot.base, newest._slot.iu, newest._slot.iv, view.lay.L); const [x, y, z] = p.c, rr = Math.hypot(x, z);
+    view.yaw = Math.atan2(-x, z); view.pitch = Math.atan2(y, rr); view.hold = 6;
   }
   view.newest = newest; viewText();
 }
 function viewText(){
-  const st = stats(view.roots);
+  const n = view.lay.recs.length, L = view.lay.L;
   let ago = "";
   if (view.newest) { const m = Math.round((Date.now() - Date.parse(view.newest.created_at)) / 60000); ago = m < 1 ? "最新一片（白框）剛剛才放上去。" : m < 60 ? `最新一片（白框）是 ${m} 分鐘前。` : m < 1440 ? `最新一片（白框）是 ${Math.round(m / 60)} 小時前。` : ""; }
-  $("viewText").textContent = st.n ? `目前 ${st.n} 片天空，分在 ${st.cells} 格裡${st.white ? `；${st.white} 格已經被看到過曝` : ""}。${ago}拖曳可以轉動。` : "還沒有人留下天空。";
+  $("viewText").textContent = n ? `目前 ${n} 片天空${L ? `，球已經滿了 ${L} 次、每次都一起分成兩半` : ""}。${ago}拖曳可以轉動。` : "還沒有人留下天空。";
 }
 function viewOpen(){
   view.on = true; view.demo = false; view.newest = null; $("intro").hidden = true; $("again").hidden = true; $("hud").hidden = true; setHint("");
@@ -570,7 +538,7 @@ function viewOpen(){
   (function loop(now){ if (!view.on) return;
     const dt = Math.min(.1, (now - (view.last || now)) / 1000); view.last = now;
     if (view.hold > 0) view.hold -= dt; else if (!view.drag) view.yaw += dt * .10;
-    drawSphere(view.roots, view.newest, viewRot(), null, 1); requestAnimationFrame(loop); })(performance.now());
+    drawSphere(view.lay, view.newest, viewRot(), 1); requestAnimationFrame(loop); })(performance.now());
 }
 function viewClose(){ view.on = false; clearInterval(view.timer); sphC.classList.remove("interactive"); $("viewbar").hidden = true;
   sx.clearRect(0, 0, sphC.width, sphC.height); skyC.style.opacity = "1"; $("intro").hidden = false; }
@@ -578,33 +546,48 @@ sphC.addEventListener("pointerdown", e => { if (!view.on) return; view.drag = [e
 sphC.addEventListener("pointermove", e => { if (!view.on || !view.drag) return;
   view.yaw += (e.clientX - view.drag[0]) * .008; view.pitch = Math.max(-1.5, Math.min(1.5, view.pitch + (e.clientY - view.drag[1]) * .008)); view.drag = [e.clientX, e.clientY]; });
 const vEnd = () => { view.drag = null; }; sphC.addEventListener("pointerup", vEnd); sphC.addEventListener("pointercancel", vEnd);
-// 只在本機示範用：在記憶體裡模擬 300 位觀眾（不寫入、不上傳），讓人看見細分與過曝
+// 只在本機示範用：在記憶體裡模擬 1500 位觀眾（不寫入、不上傳），讓人看見「滿了就對切」
 $("demo").addEventListener("click", () => {
   const fake = []; let t = Date.now() - 3e8;
-  for (let i = 0; i < 300; i++) {
-    const hot = Math.random() < .55, elev = hot ? 78 + Math.random()*12 : 42 + Math.random()*46, az = hot ? 150 + Math.random()*30 : Math.random()*360;
-    const pal = Math.floor(Math.random()*20), cld = Math.floor(Math.random()*10);
-    fake.push({ created_at: new Date(t += 6e5).toISOString(), elev, az, hold: 4 + Math.random()*24, pal, cld, lit: 0, arch: 0 });
+  for (let i = 0; i < 1500; i++) {
+    const elev = 30 + 60 * Math.pow(Math.random(), 0.8), pal = Math.floor(Math.random()*20), cld = Math.floor(Math.random()*10);
+    fake.push({ created_at: new Date(t += 6e4).toISOString(), elev, az: Math.random()*360, hold: 0.5 + Math.random()*24, stab: Math.random(), pal, cld, lit: Math.floor(Math.random()*5), arch: 0, seed: +(Math.random()*27).toFixed(3) });
   }
-  view.demo = true; view.roots = buildTree(fake); view.newest = null; viewText(); $("viewText").textContent += "（示範資料，未儲存）";
+  view.demo = true; view.lay = layoutAll(fake); view.newest = null; viewText(); $("viewText").textContent += "（示範資料，未儲存）";
 });
 $("view").addEventListener("click", viewOpen);
 $("view2").addEventListener("click", viewOpen);
 $("back").addEventListener("click", viewClose);
 
+/* ---------------- 名稱總覽（檢查用）：網址加上 ?overview=1 ---------------- */
+if (new URLSearchParams(location.search).has("overview")) {
+  const ov = $("overview"); ov.hidden = false; $("intro").hidden = true;
+  const hv = +new URLSearchParams(location.search).get("overview"); const hs = hv > 1 ? [hv] : [2, 8, 15];
+  let i = 0;
+  (function step(){
+    for (let k = 0; k < 20 && i < 1000 * hs.length; k++, i++) {
+      const arch = i % 1000, hold = hs[Math.floor(i / 1000)], pal = Math.floor(arch / 50), cld = Math.floor(arch / 5) % 10, lit = arch % 5;
+      const r = { pal, cld, lit, seed: (arch * 7 % 1000) / 37, stab: 0.6, az: 120, hold };
+      const fig = document.createElement("figure"), c = document.createElement("canvas"); c.width = c.height = 72;
+      c.getContext("2d").drawImage(thumbOf(r).img, 0, 0); fig.appendChild(c);
+      const cap = document.createElement("figcaption"); cap.textContent = `${nameOf(r)}｜${hold}秒｜#${arch + 1}`; fig.appendChild(cap); ov.appendChild(fig);
+    }
+    if (i < 1000 * hs.length) requestAnimationFrame(step);
+  })();
+}
+
 /* ---------------- 啟動 ---------------- */
-$("modeNote").textContent = "";
 $("start").addEventListener("click", async () => {
   audioStart();
   try { if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") await DeviceOrientationEvent.requestPermission(); } catch (e) {}
   addEventListener("deviceorientation", onOri);
-  setTimeout(() => { if (S.mode !== "motion") { S.mode = "touch"; S.elev = S.fbElev; if (run.state === "wait") setHint("按住畫面＝舉起手機；上下拖曳改變仰角"); } }, 1200);
+  // 2.5 秒內沒有收到陀螺儀的資料，才改用「按住畫面」
+  setTimeout(() => { if (S.mode !== "motion") { S.mode = "touch"; S.elev = S.fbElev; if (run.state === "wait") setHint(idleHint()); } }, 2500);
   begin();
 });
 $("restart").addEventListener("click", () => { view.on = false; begin(); });
 addEventListener("resize", resize); resize();
 requestAnimationFrame(frame);
 </script>
-
 </body>
 </html>
