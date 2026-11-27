@@ -460,7 +460,7 @@ async function finish(){
   const E = run.upElev ?? S.elev, A = run.upAz ?? S.az, ST = run.stabT ? run.stabSum / run.stabT : stability();
   const hold = Math.min(run.t, T_WHITE);
   view.on = false;
-  const rec = { created_at: new Date().toISOString(), elev: +Math.max(30, Math.min(90, E)).toFixed(2), az: +A.toFixed(2), hold: +hold.toFixed(2),
+  const rec = { created_at: new Date().toISOString(), elev: +Math.max(30, Math.min(90, E)).toFixed(2), az: +(((+A.toFixed(2)) % 360 + 360) % 360).toFixed(2), hold: +hold.toFixed(2),
     stab: +Math.max(0, Math.min(1, ST)).toFixed(3), pal: run.arch.pal, cld: run.arch.cld, lit: run.arch.lit, arch: run.arch.arch, seed: run.arch.seed, cell: 0 };
   const recs = await store.recent(); store.add(rec);
   const lay = layoutAll(recs.concat([rec]));
